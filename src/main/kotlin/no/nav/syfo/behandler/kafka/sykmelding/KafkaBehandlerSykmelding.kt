@@ -130,7 +130,7 @@ private fun createAndStoreBehandlerFromSykmelding(
         arbeidstakerPersonident = arbeidstakerPersonident,
         mottatt = receivedSykmeldingDTO.mottattDato.toOffsetDateTime(),
     )
-    behandlerService.createOrGetBehandler(
+    behandlerService.createOrUpdateBehandlerAndRelasjon(
         behandler = sykmelder,
         behandlerArbeidstakerRelasjon = behandlerArbeidstakerRelasjon,
     )

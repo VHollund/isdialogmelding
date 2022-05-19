@@ -46,7 +46,7 @@ class BehandlerServiceSpek : Spek({
             describe("createOrGetBehandler") {
                 it("lagrer behandler for arbeidstaker") {
                     val behandler =
-                        behandlerService.createOrGetBehandler(
+                        behandlerService.createOrUpdateBehandlerAndRelasjon(
                             generateFastlegeResponse().toBehandler(UserConstants.PARTNERID),
                             BehandlerArbeidstakerRelasjon(
                                 type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -65,7 +65,7 @@ class BehandlerServiceSpek : Spek({
                 }
                 it("lagrer behandler for arbeidstaker og setter dialogmeldingEnabled senere") {
                     val behandler =
-                        behandlerService.createOrGetBehandler(
+                        behandlerService.createOrUpdateBehandlerAndRelasjon(
                             generateFastlegeResponse().toBehandler(
                                 partnerId = UserConstants.PARTNERID,
                                 dialogmeldingEnabled = false,
@@ -94,7 +94,7 @@ class BehandlerServiceSpek : Spek({
                 }
                 it("lagrer behandler for arbeidstaker og setter system senere") {
                     val behandler =
-                        behandlerService.createOrGetBehandler(
+                        behandlerService.createOrUpdateBehandlerAndRelasjon(
                             generateFastlegeResponse().toBehandler(
                                 partnerId = UserConstants.PARTNERID,
                                 dialogmeldingEnabled = false,
@@ -140,7 +140,7 @@ class BehandlerServiceSpek : Spek({
                 }
                 it("lagrer behandler for arbeidstaker én gang når kalt flere ganger for samme behandler og arbeidstaker") {
                     val behandler = generateFastlegeResponse().toBehandler(UserConstants.PARTNERID)
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -148,7 +148,7 @@ class BehandlerServiceSpek : Spek({
                             mottatt = OffsetDateTime.now(),
                         )
                     )
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -163,7 +163,7 @@ class BehandlerServiceSpek : Spek({
                 }
                 it("lagrer én behandler koblet til begge arbeidstakere når kalt for to ulike arbeidstakere med samme behandler") {
                     val behandler = generateFastlegeResponse().toBehandler(UserConstants.PARTNERID)
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -171,7 +171,7 @@ class BehandlerServiceSpek : Spek({
                             mottatt = OffsetDateTime.now(),
                         ),
                     )
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -193,7 +193,7 @@ class BehandlerServiceSpek : Spek({
                 it("lagrer behandler uten fnr") {
                     val behandler =
                         generateFastlegeResponse(null, UserConstants.HERID, UserConstants.HPRID).toBehandler(UserConstants.PARTNERID)
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -213,7 +213,7 @@ class BehandlerServiceSpek : Spek({
                             null,
                             UserConstants.HPRID
                         ).toBehandler(UserConstants.PARTNERID)
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -233,7 +233,7 @@ class BehandlerServiceSpek : Spek({
                             UserConstants.HERID,
                             null
                         ).toBehandler(UserConstants.PARTNERID)
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -251,7 +251,7 @@ class BehandlerServiceSpek : Spek({
                         generateFastlegeResponse(null, null, null).toBehandler(UserConstants.PARTNERID)
 
                     assertThrows(IllegalArgumentException::class.java) {
-                        behandlerService.createOrGetBehandler(
+                        behandlerService.createOrUpdateBehandlerAndRelasjon(
                             behandler,
                             BehandlerArbeidstakerRelasjon(
                                 type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -272,7 +272,7 @@ class BehandlerServiceSpek : Spek({
                             arbeidstakerPersonident = UserConstants.ARBEIDSTAKER_FNR
                         )
 
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -294,7 +294,7 @@ class BehandlerServiceSpek : Spek({
                             behandler = behandler,
                             arbeidstakerPersonident = UserConstants.ANNEN_ARBEIDSTAKER_FNR
                         )
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -318,7 +318,7 @@ class BehandlerServiceSpek : Spek({
                             behandler = behandler,
                             arbeidstakerPersonident = UserConstants.ARBEIDSTAKER_FNR
                         )
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler = annenBehandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -346,7 +346,7 @@ class BehandlerServiceSpek : Spek({
                         behandler = annenBehandler,
                         arbeidstakerPersonident = UserConstants.ARBEIDSTAKER_FNR
                     )
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -371,7 +371,7 @@ class BehandlerServiceSpek : Spek({
                         behandler = annenBehandler,
                         arbeidstakerPersonident = UserConstants.ANNEN_ARBEIDSTAKER_FNR
                     )
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -396,7 +396,7 @@ class BehandlerServiceSpek : Spek({
                             arbeidstakerPersonident = UserConstants.ARBEIDSTAKER_FNR
                         )
 
-                    behandlerService.createOrGetBehandler(
+                    behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler = sammeBehandlerAnnenPartnerId,
                         BehandlerArbeidstakerRelasjon(
                             type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,

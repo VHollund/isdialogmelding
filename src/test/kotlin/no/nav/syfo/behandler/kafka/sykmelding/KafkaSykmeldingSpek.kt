@@ -222,7 +222,7 @@ class KafkaSykmeldingSpek : Spek({
                     }
                     it("sykmelding from existing fastlege should add new sykmelder-relation") {
                         val behandler =
-                            behandlerService.createOrGetBehandler(
+                            behandlerService.createOrUpdateBehandlerAndRelasjon(
                                 generateFastlegeResponse().toBehandler(UserConstants.PARTNERID),
                                 BehandlerArbeidstakerRelasjon(
                                     type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,
@@ -550,7 +550,7 @@ class KafkaSykmeldingSpek : Spek({
                         kontor!!.partnerId shouldBeEqualTo sykmelding.partnerreferanse
                         kontor.poststed shouldBe null
 
-                        behandlerService.createOrGetBehandler(
+                        behandlerService.createOrUpdateBehandlerAndRelasjon(
                             fastlegeBehandler,
                             BehandlerArbeidstakerRelasjon(
                                 type = BehandlerArbeidstakerRelasjonstype.FASTLEGE,

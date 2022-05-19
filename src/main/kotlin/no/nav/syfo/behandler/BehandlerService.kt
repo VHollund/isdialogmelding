@@ -65,7 +65,7 @@ class BehandlerService(
                 arbeidstakerPersonident = personident,
                 mottatt = OffsetDateTime.now(),
             )
-            return createOrGetBehandler(
+            return createOrUpdateBehandlerAndRelasjon(
                 behandler = fastlege,
                 behandlerArbeidstakerRelasjon = behandlerArbeidstakerRelasjon,
             )
@@ -105,37 +105,41 @@ class BehandlerService(
         } else null
     }
 
-    fun createOrGetBehandler(
+    fun createOrUpdateBehandlerAndRelasjon(
         behandler: Behandler,
         behandlerArbeidstakerRelasjon: BehandlerArbeidstakerRelasjon,
     ): Behandler {
         val pBehandler = getBehandler(behandler = behandler)
-        if (pBehandler == null) {
-            return createBehandlerForArbeidstaker(
+            ?: return createBehandlerAndKontorAndRelasjon(
                 behandler = behandler,
                 behandlerArbeidstakerRelasjon = behandlerArbeidstakerRelasjon,
             )
-        } else {
-            updateBehandler(
-                behandler = behandler,
-            )
-        }
 
-        val pBehandlereForArbeidstakerList =
-            database.getBehandlerAndRelasjonstypeList(
-                arbeidstakerIdent = behandlerArbeidstakerRelasjon.arbeidstakerPersonident,
-            )
+        updateBehandler(
+            behandler = behandler
+        )
 
-        val isBytteAvFastlege = behandlerArbeidstakerRelasjon.type == BehandlerArbeidstakerRelasjonstype.FASTLEGE &&
-            pBehandlereForArbeidstakerList
-            .filter { (_, behandlerType) -> behandlerType == BehandlerArbeidstakerRelasjonstype.FASTLEGE }
-            .map { (pBehandler, _) -> pBehandler.id }.firstOrNull() != pBehandler.id
+        createOrUpdateBehandlerArbeidstakerRelasjon(
+            pBehandler = pBehandler,
+            behandlerArbeidstakerRelasjon = behandlerArbeidstakerRelasjon,
+        )
 
-        val behandlerIkkeKnyttetTilArbeidstaker = !pBehandlereForArbeidstakerList
-            .filter { (_, behandlerType) -> behandlerType == behandlerArbeidstakerRelasjon.type }
-            .map { (pBehandler, _) -> pBehandler.id }.contains(pBehandler.id)
+        return pBehandler.toBehandler(
+            kontor = database.getBehandlerKontorById(pBehandler.kontorId)
+        )
+    }
 
-        if (isBytteAvFastlege || behandlerIkkeKnyttetTilArbeidstaker) {
+    private fun createOrUpdateBehandlerArbeidstakerRelasjon(
+        behandlerArbeidstakerRelasjon: BehandlerArbeidstakerRelasjon,
+        pBehandler: PBehandler,
+    ) {
+
+        val isBytteAvFastlegeOrNewRelasjon = isBytteAvFastlegeOrNewRelasjon(
+            behandlerArbeidstakerRelasjon = behandlerArbeidstakerRelasjon,
+            pBehandler = pBehandler,
+        )
+
+        if (isBytteAvFastlegeOrNewRelasjon) {
             addBehandlerToArbeidstaker(
                 behandlerArbeidstakerRelasjon = behandlerArbeidstakerRelasjon,
                 behandlerId = pBehandler.id,
@@ -146,10 +150,26 @@ class BehandlerService(
                 behandlerId = pBehandler.id,
             )
         }
+    }
 
-        return pBehandler.toBehandler(
-            kontor = database.getBehandlerKontorById(pBehandler.kontorId)
-        )
+    private fun isBytteAvFastlegeOrNewRelasjon(
+        behandlerArbeidstakerRelasjon: BehandlerArbeidstakerRelasjon,
+        pBehandler: PBehandler,
+    ): Boolean {
+        val pBehandlereForArbeidstakerList =
+            database.getBehandlerAndRelasjonstypeList(
+                arbeidstakerIdent = behandlerArbeidstakerRelasjon.arbeidstakerPersonident,
+            )
+
+        val isBytteAvFastlege = behandlerArbeidstakerRelasjon.type == BehandlerArbeidstakerRelasjonstype.FASTLEGE && pBehandlereForArbeidstakerList
+            .filter { (_, behandlerType) -> behandlerType == BehandlerArbeidstakerRelasjonstype.FASTLEGE }
+            .map { (pBehandler, _) -> pBehandler.id }.firstOrNull() != pBehandler.id
+
+        val behandlerIkkeKnyttetTilArbeidstaker = !pBehandlereForArbeidstakerList
+            .filter { (_, behandlerType) -> behandlerType == behandlerArbeidstakerRelasjon.type }
+            .map { (pBehandler, _) -> pBehandler.id }.contains(pBehandler.id)
+
+        return isBytteAvFastlege || behandlerIkkeKnyttetTilArbeidstaker
     }
 
     private fun getBehandler(behandler: Behandler): PBehandler? {
@@ -170,21 +190,13 @@ class BehandlerService(
         }
     }
 
-    private fun createBehandlerForArbeidstaker(
+    private fun createBehandlerAndKontorAndRelasjon(
         behandlerArbeidstakerRelasjon: BehandlerArbeidstakerRelasjon,
         behandler: Behandler,
     ): Behandler {
         database.connection.use { connection ->
-            val pBehandlerKontor = connection.getBehandlerKontor(behandler.kontor.partnerId)
-            val kontorId = if (pBehandlerKontor != null) {
-                connection.updateBehandlerKontor(
-                    behandler = behandler,
-                    existingBehandlerKontor = pBehandlerKontor,
-                )
-                pBehandlerKontor.id
-            } else {
-                connection.createBehandlerKontor(behandler.kontor)
-            }
+            val kontorId = connection.createOrUpdateKontor(behandler)
+
             val pBehandler = connection.createBehandler(
                 behandler = behandler,
                 kontorId = kontorId,
@@ -198,6 +210,22 @@ class BehandlerService(
             return pBehandler.toBehandler(
                 database.getBehandlerKontorById(pBehandler.kontorId)
             )
+        }
+    }
+
+    private fun Connection.createOrUpdateKontor(
+        behandler: Behandler,
+    ): Int {
+        val pBehandlerKontor = this.getBehandlerKontor(behandler.kontor.partnerId)
+
+        return if (pBehandlerKontor != null) {
+            updateBehandlerKontor(
+                behandler = behandler,
+                existingBehandlerKontor = pBehandlerKontor,
+            )
+            pBehandlerKontor.id
+        } else {
+            createBehandlerKontor(behandler.kontor)
         }
     }
 

@@ -110,7 +110,7 @@ fun addBehandlerAndKontorToDatabase(behandlerService: BehandlerService) {
         mottatt = OffsetDateTime.now(),
     )
 
-    behandlerService.createOrGetBehandler(behandler, behandlerArbeidstakerRelasjon)
+    behandlerService.createOrUpdateBehandlerAndRelasjon(behandler, behandlerArbeidstakerRelasjon)
 }
 
 fun mockKafkaConsumerWithDialogmelding(dialogmelding: KafkaDialogmeldingFromBehandlerDTO): KafkaConsumer<String, KafkaDialogmeldingFromBehandlerDTO> {

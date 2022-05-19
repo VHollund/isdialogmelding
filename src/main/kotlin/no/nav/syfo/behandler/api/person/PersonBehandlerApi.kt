@@ -49,7 +49,7 @@ fun Route.registerPersonBehandlerApi(
                         arbeidstakerPersonident = requestPersonident,
                         mottatt = OffsetDateTime.now(),
                     )
-                    val behandler = behandlerService.createOrGetBehandler(
+                    val behandler = behandlerService.createOrUpdateBehandlerAndRelasjon(
                         behandler = fastlege,
                         behandlerArbeidstakerRelasjon = behandlerArbeidstakerRelasjon,
                     )
